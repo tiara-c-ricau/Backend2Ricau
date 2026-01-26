@@ -1,27 +1,38 @@
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import handlebars from "express-handlebars";
-import productsRouter from "./routes/products.router.js";
 import viewsRouter from "./routes/views.router.js";
-import path from "path";
+
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
-// Middlewares
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
-// 👉 STATIC (ACÁ VA)
-app.use(express.static(path.join(process.cwd(), "src", "public")));
 
-// Handlebars
 app.engine("handlebars", handlebars.engine());
-app.set("views", path.join(process.cwd(), "src", "views"));
+app.set("views", "./src/views");
 app.set("view engine", "handlebars");
 
-// Routers
-app.use("/api/products", productsRouter);
+
 app.use("/", viewsRouter);
 
-export default app;
+io.on("connection", socket => {
+  console.log("Cliente conectado");
+});
+
+mongoose.connect("mongodb://localhost:27017/ecommerce")
+
+
+httpServer.listen(8080, () => {
+  console.log("Servidor escuchando en http://localhost:8080");
+});
+
+
 
 

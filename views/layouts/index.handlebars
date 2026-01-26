@@ -1,0 +1,44 @@
+<h1>Productos</h1>
+
+<ul>
+  {{#each docs}}
+    <li>
+      {{this.title}} - ${{this.price}}
+      <a href="/products/{{this._id}}">Ver detalle</a>
+      <button onclick="addToCart('{{this._id}}')">Agregar al carrito</button>
+    </li>
+  {{/each}}
+</ul>
+
+<div>
+  {{#if hasPrevPage}}
+    <a href="/products?page={{prevPage}}">Anterior</a>
+  {{/if}}
+
+  Página {{page}} de {{totalPages}}
+
+  {{#if hasNextPage}}
+    <a href="/products?page={{nextPage}}">Siguiente</a>
+  {{/if}}
+</div>
+
+<script>
+  const CART_ID = localStorage.getItem("cartId");
+
+  async function addToCart(pid) {
+    let cid = CART_ID;
+
+    if (!cid) {
+      const res = await fetch("/api/carts", { method: "POST" });
+      const cart = await res.json();
+      localStorage.setItem("cartId", cart._id);
+      cid = cart._id;
+    }
+
+    await fetch(`/api/carts/${cid}/products/${pid}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity: 1 })
+    });
+  }
+</script>

@@ -1,26 +1,27 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
-import ProductManager from "./managers/ProductManager.js";
+import { connectDB } from "./config/db.js";
+import Product from "./models/product.model.js";
 
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-const productManager = new ProductManager("./src/data/products.json");
+connectDB();
 
 io.on("connection", async socket => {
   console.log("Cliente conectado");
 
-  socket.emit("products", await productManager.getProducts());
+  socket.emit("products", await Product.find().lean());
 
   socket.on("addProduct", async product => {
-    await productManager.addProduct(product);
-    io.emit("products", await productManager.getProducts());
+    await Product.create(product);
+    io.emit("products", await Product.find().lean());
   });
 
   socket.on("deleteProduct", async id => {
-    await productManager.deleteProduct(id);
-    io.emit("products", await productManager.getProducts());
+    await Product.findByIdAndDelete(id);
+    io.emit("products", await Product.find().lean());
   });
 });
 
